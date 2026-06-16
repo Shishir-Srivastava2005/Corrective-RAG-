@@ -1,4 +1,3 @@
-<div align="center">
 
 <h1>🧠 Agentic RAG</h1>
 
