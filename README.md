@@ -136,6 +136,68 @@ User Question
 </table>
 
 ---
+<h2>🔬 How Context Refinement Works</h2>
+
+<p>
+The <code>refine</code> node runs after retrieval (and after web search if triggered). Its job is to strip noise from the context before generation. It works in three steps:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Step</th><th>What Happens</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>1. Decompose</b></td>
+      <td>The full context is split into individual sentences using a regex boundary splitter <code>(?&lt;=[.!?])\s+</code></td>
+    </tr>
+    <tr>
+      <td><b>2. LLM Filter</b></td>
+      <td>Each sentence is independently judged by <code>phi4-mini</code> via structured output — returns <code>keep: true/false</code></td>
+    </tr>
+    <tr>
+      <td><b>3. Reconstruct</b></td>
+      <td>Only kept sentences are joined and passed to the generator as <code>refined_context</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+This is especially important on the <code>AMBIGUOUS</code> path, where local docs and web results are merged — without refinement, the generator would be flooded with conflicting, off-topic noise.
+</p>
+
+---
+
+<h2>⚙️ Configuration</h2>
+
+<p>Two thresholds in <code>rag_engine.py</code> control the routing behaviour:</p>
+
+```python
+UPPER_TH = 0.7   # At least one chunk above this → CORRECT (local docs are good enough)
+LOWER_TH = 0.3   # All chunks below this → INCORRECT (fall back entirely to web)
+```
+
+<table>
+  <thead>
+    <tr><th>If you want to…</th><th>Then…</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Be stricter about local retrieval quality</td>
+      <td>Increase <code>UPPER_TH</code> (e.g. <code>0.8</code>)</td>
+    </tr>
+    <tr>
+      <td>Tolerate weaker chunks before triggering web search</td>
+      <td>Lower <code>LOWER_TH</code> (e.g. <code>0.2</code>)</td>
+    </tr>
+    <tr>
+      <td>Force more web search usage</td>
+      <td>Increase both thresholds so the AMBIGUOUS band widens</td>
+    </tr>
+  </tbody>
+</table>
+
+---
 
 <h2>🛠️ Tech Stack</h2>
 
@@ -254,4 +316,14 @@ UNSTRUCTURED_URL=https://api.unstructuredapp.io
 ```bash
 uvicorn app:app --reload
 ```
+<h2>📡 API Reference</h2>
+
+<h3><code>POST /upload</code></h3>
+
+<p>Upload a PDF. The system will parse it with Unstructured (hi-res strategy), chunk it, embed it with <code>nomic-embed-text</code>, and store it in ChromaDB.</p>
+
+<h3><code>POST /chat</code></h3>
+
+<p>Ask a question. The pipeline self-evaluates retrieval and decides whether to answer from local docs, web search, or a blend of both.</p>
+
 
