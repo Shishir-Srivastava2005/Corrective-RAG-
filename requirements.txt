@@ -1,0 +1,12 @@
+langchain
+langchain-ollama
+python-dotenv
+langchain-community 
+langchain-core
+langgraph
+ipykernel
+langchain-unstructured
+unstructured
+langchain-chroma
+tavily-python
+fastapi[all]
