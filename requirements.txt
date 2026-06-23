@@ -10,3 +10,4 @@ unstructured
 langchain-chroma
 tavily-python
 fastapi[all]
+langsmith
