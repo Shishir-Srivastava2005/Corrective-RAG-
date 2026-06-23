@@ -1,5 +1,5 @@
 
-<h1>🧠 Agentic RAG</h1>
+<h1>Agentic RAG</h1>
 
 <p><em>A Corrective RAG system that evaluates its own retrieval — and falls back to the web when local knowledge isn't enough.</em></p>
 <p><img width="592" height="412" alt="image" src="https://github.com/user-attachments/assets/0a6148ba-7903-4eca-a4de-6181dda0a831" /></p>
@@ -103,6 +103,14 @@ User Question
                    │
                  Answer
 ```
+## 🔍 Observability & Tracing
+
+Every graph execution is fully traced via **LangSmith**. Each LangGraph node — `retrieve`, `eval_each_doc`, `rewrite_query`, `web_search`, `refine`, `generate` — appears as a named span with its inputs, outputs, and latency.
+
+This makes it possible to:
+- See exactly which verdict path was taken (CORRECT / AMBIGUOUS / INCORRECT) for any query
+- Inspect what score each chunk received in `eval_each_doc`
+- Compare runs across different documents or threshold configs
 
 <br/>
 
@@ -252,78 +260,4 @@ LOWER_TH = 0.3   # All chunks below this → INCORRECT (fall back entirely to we
     </tr>
   </tbody>
 </table>
-
----
-
-<h2>🚀 Getting Started</h2>
-
-<details>
-<summary><b>Step 1 — Prerequisites</b></summary>
-<br/>
-
-- Python 3.10+
-- [Ollama](https://ollama.com/) installed and running locally
-
-Pull the required models:
-
-```bash
-ollama pull gemma4:31b-cloud
-ollama pull phi4-mini
-ollama pull nomic-embed-text
-```
-
-</details>
-
-<details>
-<summary><b>Step 2 — Clone & Install</b></summary>
-<br/>
-
-```bash
-git clone https://github.com/<your-username>/agentic-rag.git
-cd agentic-rag
-
-python -m venv .venv
-source .venv/bin/activate       # Windows: .venv\Scripts\activate
-
-pip install -r requirements.txt
-```
-
-</details>
-
-<details>
-<summary><b>Step 3 — Configure Environment Variables</b></summary>
-<br/>
-
-Create a `.env` file in the project root:
-
-```env
-TAVILY_API_KEY=your_tavily_api_key
-UNSTRUCTURED_API_KEY=your_unstructured_api_key
-UNSTRUCTURED_URL=https://api.unstructuredapp.io
-```
-
-<ul>
-  <li>Free Tavily key → <a href="https://tavily.com/">tavily.com</a></li>
-  <li>Unstructured key → <a href="https://unstructured.io/">unstructured.io</a></li>
-</ul>
-
-</details>
-
-<details>
-<summary><b>Step 4 — Run the Server</b></summary>
-<br/>
-
-```bash
-uvicorn app:app --reload
-```
-<h2>📡 API Reference</h2>
-
-<h3><code>POST /upload</code></h3>
-
-<p>Upload a PDF. The system will parse it with Unstructured (hi-res strategy), chunk it, embed it with <code>nomic-embed-text</code>, and store it in ChromaDB.</p>
-
-<h3><code>POST /chat</code></h3>
-
-<p>Ask a question. The pipeline self-evaluates retrieval and decides whether to answer from local docs, web search, or a blend of both.</p>
-
 
